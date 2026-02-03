@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="icon" type="image/png" href="mhk-logo.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Specter - AI Agent Cluster for Healthcare Software</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #7c3aed;
+            --accent-color: #06b6d4;
+            --dark-bg: #0f172a;
+            --card-bg: #1e293b;
+            --text-light: #f1f5f9;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            padding: 80px 20px;
+        }
+
+        /* Animated Aura Background */
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background:
+                radial-gradient(circle at 30% 40%, rgba(37, 99, 235, 0.4) 0%, transparent 25%),
+                radial-gradient(circle at 70% 60%, rgba(124, 58, 237, 0.35) 0%, transparent 25%),
+                radial-gradient(circle at 50% 30%, rgba(6, 182, 212, 0.3) 0%, transparent 20%);
+            animation: auraFloat 20s ease-in-out infinite, auraRotate 30s linear infinite;
+            opacity: 0.8;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at top, transparent 0%, rgba(15, 23, 42, 0.3) 50%, rgba(15, 23, 42, 1) 100%);
+            pointer-events: none;
+        }
+
+        @keyframes auraFloat {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            25% {
+                transform: translate(-5%, 5%) scale(1.05);
+            }
+
+            50% {
+                transform: translate(5%, -5%) scale(0.95);
+            }
+
+            75% {
+                transform: translate(-3%, -3%) scale(1.02);
+            }
+        }
+
+        @keyframes auraRotate {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo {
+            font-size: 5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .tagline {
+            font-size: 1.8rem;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            animation: fadeIn 1.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .hero-description {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 40px;
+            color: var(--text-muted);
+            line-height: 1.8;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            flex-wrap: wrap;
+            margin-top: 60px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        /* Section Styling */
+        section {
+            padding: 100px 0;
+            position: relative;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto 60px;
+        }
+
+        /* Agent Cards */
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .agent-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 40px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .agent-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+        }
+
+        .agent-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .agent-image {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 30px;
+            display: block;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            object-fit: contain;
+        }
+
+        .agent-name {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-light);
+        }
+
+        .agent-acronym {
+            font-size: 1rem;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        .agent-description {
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+
+        .agent-capabilities {
+            list-style: none;
+            margin-top: 20px;
+        }
+
+        .agent-capabilities li {
+            padding: 8px 0;
+            color: var(--text-muted);
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .agent-capabilities li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        .agent-label {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+
+        /* Phoenix Section */
+        .phoenix-section {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(124, 58, 237, 0.1));
+            border-radius: 30px;
+            padding: 80px 60px;
+            margin: 60px 0;
+        }
+
+        .phoenix-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .phoenix-feature {
+            background: rgba(30, 41, 59, 0.5);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .phoenix-feature h3 {
+            color: var(--accent-color);
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .phoenix-feature p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Architecture Section */
+        .architecture-diagram {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            overflow-x: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .architecture-diagram pre {
+            color: var(--text-light);
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            white-space: pre;
+            margin: 0;
+        }
+
+        .architecture-image-container {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.8));
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .architecture-image {
+            width: 100%;
+            max-width: 1200px;
+            height: auto;
+            border-radius: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .architecture-image:hover {
+            transform: scale(1.02);
+        }
+
+        .architecture-description {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.8));
+            padding: 50px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .arch-paragraph {
+            font-size: 1.15rem;
+            line-height: 2;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            text-align: justify;
+        }
+
+        .arch-paragraph:last-child {
+            margin-bottom: 0;
+        }
+
+        .arch-paragraph strong {
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .arch-paragraph .highlight {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        /* Tables */
+        .comparison-table,
+        .performance-table {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.8));
+            padding: 40px;
+            border-radius: 24px;
+            overflow-x: auto;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            margin-bottom: 50px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 0;
+        }
+
+        thead {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.3), rgba(124, 58, 237, 0.3));
+        }
+
+        thead tr th:first-child {
+            border-top-left-radius: 12px;
+        }
+
+        thead tr th:last-child {
+            border-top-right-radius: 12px;
+        }
+
+        th {
+            padding: 20px 24px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--text-light);
+            border-bottom: 3px solid rgba(37, 99, 235, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 20px 24px;
+            color: var(--text-muted);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        tbody tr:hover {
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.1), rgba(124, 58, 237, 0.1));
+            transform: scale(1.01);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:last-child td:first-child {
+            border-bottom-left-radius: 12px;
+        }
+
+        tbody tr:last-child td:last-child {
+            border-bottom-right-radius: 12px;
+        }
+
+        .agent-badge {
+            display: inline-block;
+            padding: 8px 18px;
+            border-radius: 24px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .agent-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .agent-badge.darci {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        .agent-badge.darci:hover {
+            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.6);
+        }
+
+        .agent-badge.scribe {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .agent-badge.scribe:hover {
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.6);
+        }
+
+        .agent-badge.prism {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+        }
+
+        .agent-badge.prism:hover {
+            box-shadow: 0 6px 16px rgba(139, 92, 246, 0.6);
+        }
+
+        .agent-badge.hermes {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+        }
+
+        .agent-badge.hermes:hover {
+            box-shadow: 0 6px 16px rgba(6, 182, 212, 0.6);
+        }
+
+        .agent-badge.sentry {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        }
+
+        .agent-badge.sentry:hover {
+            box-shadow: 0 6px 16px rgba(245, 158, 11, 0.6);
+        }
+
+        .agent-badge.beacon {
+            background: linear-gradient(135deg, #ec4899, #db2777);
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+        }
+
+        .agent-badge.beacon:hover {
+            box-shadow: 0 6px 16px rgba(236, 72, 153, 0.6);
+        }
+
+        .subsection-title {
+            font-size: 2.2rem;
+            margin: 70px 0 40px 0;
+            text-align: center;
+            background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        /* Tech Stack */
+        .tech-stack {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+
+        .tech-badge {
+            background: var(--card-bg);
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-weight: 600;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .tech-badge:hover {
+            border-color: var(--primary-color);
+            transform: scale(1.05);
+        }
+
+        /* CTA Section */
+        .cta-section {
+            text-align: center;
+            padding: 80px 20px;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(124, 58, 237, 0.2));
+            border-radius: 30px;
+            margin: 60px 0;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 18px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-top: 30px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.4);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 3rem;
+            }
+
+            .tagline {
+                font-size: 1.3rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .agents-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                gap: 30px;
+            }
+
+            .phoenix-section {
+                padding: 40px 30px;
+            }
+        }
+
+        /* Scroll Animation */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="logo">SPECTER</h1>
+            <p class="tagline">AI Agent Cluster for Healthcare Software Intelligence</p>
+            <p class="hero-description">
+                An autonomous, intelligent system that monitors JIRA tickets and automatically processes them
+                using specialized AI agents. Built on AWS ECS with the Phoenix autonomous agent engine,
+                Specter provides 24/7 automated code analysis, documentation, and planning for
+                healthcare software development at MedHok.
+            </p>
+
+            <div class="stats">
+                <div class="stat">
+                    <span class="stat-number">6</span>
+                    <span class="stat-label">Specialized Agents</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">12</span>
+                    <span class="stat-label">Phoenix Optimizations</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">24/7</span>
+                    <span class="stat-label">Autonomous Operation</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">∞</span>
+                    <span class="stat-label">Scalability</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Meet The Team Section -->
+    <section id="agents">
+        <div class="container">
+            <h2 class="section-title fade-in">Meet The Team</h2>
+            <p class="section-subtitle fade-in">Six specialized AI agents, each mastering their domain to deliver
+                exceptional results</p>
+
+            <div class="agents-grid">
+                <!-- DARCI -->
+                <div class="agent-card fade-in">
+                    <img src="DARCI.png" alt="DARCI Agent" class="agent-image">
+                    <h3 class="agent-name">DARCI</h3>
+                    <p class="agent-acronym">Defect Analysis & Root Cause Identification</p>
+                    <p class="agent-description">
+                        The detective of the team. DARCI investigates software defects with precision,
+                        diving deep into code and git history to uncover root causes and propose proven fixes.
+                    </p>
+                    <ul class="agent-capabilities">
+                        <li>Deep code analysis and pattern recognition</li>
+                        <li>Git history investigation and blame analysis</li>
+                        <li>Root cause identification with evidence</li>
+                        <li>Fix recommendations with code examples</li>
+                        <li>Impact assessment and testing guidance</li>
+                    </ul>
+                    <span class="agent-label">Label: DARCI</span>
+                </div>
+
+                <!-- SCRIBE -->
+                <div class="agent-card fade-in">
+                    <img src="SCRIBE.png" alt="SCRIBE Agent" class="agent-image">
+                    <h3 class="agent-name">SCRIBE</h3>
+                    <p class="agent-acronym">Simple Clear Rundown of Implementations, Behavior, and Endpoints</p>
+                    <p class="agent-description">
+                        The documentarian. SCRIBE transforms complex code into clear, understandable documentation
+                        that helps teams quickly grasp how systems work.
+                    </p>
+                    <ul class="agent-capabilities">
+                        <li>Code flow tracing and execution analysis</li>
+                        <li>API endpoint documentation</li>
+                        <li>Behavior explanation with examples</li>
+                        <li>Component interaction mapping</li>
+                        <li>Integration point identification</li>
+                    </ul>
+                    <span class="agent-label">Label: SCRIBE</span>
+                </div>
+
+                <!-- PRISM -->
+                <div class="agent-card fade-in">
+                    <img src="PRISM.png" alt="PRISM Agent" class="agent-image">
+                    <h3 class="agent-name">PRISM</h3>
+                    <p class="agent-acronym">Planning & Refinement with Intelligent Systems at MedHok</p>
+                    <p class="agent-description">
+                        The architect. PRISM designs comprehensive implementation plans for new features,
+                        breaking down complexity into actionable steps with detailed code examples.
+                    </p>
+                    <ul class="agent-capabilities">
+                        <li>Requirements analysis and breakdown</li>
+                        <li>Architecture planning and design</li>
+                        <li>File-by-file implementation guides</li>
+                        <li>Before/after code transformations</li>
+                        <li>Risk assessment and effort estimation</li>
+                    </ul>
+                    <span class="agent-label">Label: PRISM</span>
+                </div>
+
+                <!-- HERMES -->
+                <div class="agent-card fade-in">
+                    <img src="HERMES.png" alt="HERMES Agent" class="agent-image">
+                    <h3 class="agent-name">HERMES</h3>
+                    <p class="agent-acronym">Heuristic Engine for Rules, Modes, and Environment Settings</p>
+                    <p class="agent-description">
+                        The scout. HERMES rapidly locates configuration values and environment settings
+                        across codebases, providing instant answers to "where is this configured?"
+                    </p>
+                    <ul class="agent-capabilities">
+                        <li>Lightning-fast config lookups</li>
+                        <li>Multi-source search (.env, config files, DB)</li>
+                        <li>Structured JSON responses</li>
+                        <li>Cross-environment discovery</li>
+                        <li>Usage reference identification</li>
+                    </ul>
+                    <span class="agent-label">Label: HERMES</span>
+                </div>
+
+                <!-- SENTRY -->
+                <div class="agent-card fade-in">
+                    <img src="SENTRY.png" alt="SENTRY Agent" class="agent-image">
+                    <h3 class="agent-name">SENTRY</h3>
+                    <p class="agent-acronym">Safety & Execution eNtry Risk analYzer</p>
+                    <p class="agent-description">
+                        The guardian. SENTRY reviews MySQL execution tickets, validates SQL against Hibernate models,
+                        and provides safety assessments before database changes go live.
+                    </p>
+                    <ul class="agent-capabilities">
+                        <li>HBM model validation and correlation</li>
+                        <li>SQL safety gate analysis</li>
+                        <li>Risk assessment (LOW/MED/HIGH)</li>
+                        <li>Checklist-based review process</li>
+                        <li>Rollback plan verification</li>
+                    </ul>
+                    <span class="agent-label">Label: SENTRY</span>
+                </div>
+
+                <!-- BEACON -->
+                <div class="agent-card fade-in">
+                    <img src="BEACON.png" alt="BEACON Agent" class="agent-image">
+                    <h3 class="agent-name">BEACON</h3>
+                    <p class="agent-acronym">Backend Execution Agent for Case Orchestrated Normalization</p>
+                    <p class="agent-description">
+                        The automator. BEACON transforms Excel spreadsheets into validated SQL statements,
+                        integrating with MOANA AI to generate bulk case update scripts safely.
+                    </p>
+                    <ul class="agent-capabilities">
+                        <li>XLSX file processing from JIRA attachments</li>
+                        <li>MOANA API integration for SQL generation</li>
+                        <li>HBM model validation for generated SQL</li>
+                        <li>Tenant scoping verification</li>
+                        <li>Bulk operation safety assessment</li>
+                    </ul>
+                    <span class="agent-label">Label: BEACON</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Phoenix Engine Section -->
+    <section id="phoenix">
+        <div class="container">
+            <div class="phoenix-section fade-in">
+                <h2 class="section-title">Powered by Phoenix</h2>
+                <p class="section-subtitle">
+                    A sophisticated wrapper around Claude Agent SDK, Phoenix serves as the autonomous agent engine at
+                    the heart of Specter, featuring 12 integrated optimizations for speed, reliability, and
+                    cost-effectiveness.
+                </p>
+
+                <div class="phoenix-features">
+                    <div class="phoenix-feature">
+                        <h3>🧠 Context Management</h3>
+                        <p>Prevents token overflow on long analyses</p>
+                    </div>
+                    <div class="phoenix-feature">
+                        <h3>✅ Output Validation</h3>
+                        <p>Ensures complete and accurate results</p>
+                    </div>
+                    <div class="phoenix-feature">
+                        <h3>⚡ Tool Caching</h3>
+                        <p>2-3x speedup via redundancy elimination</p>
+                    </div>
+                    <div class="phoenix-feature">
+                        <h3>🚀 Parallel Execution</h3>
+                        <p>2-5x faster concurrent tool operations</p>
+                    </div>
+                    <div class="phoenix-feature">
+                        <h3>💰 Token Tracking</h3>
+                        <p>Real-time cost visibility and budget enforcement</p>
+                    </div>
+                    <div class="phoenix-feature">
+                        <h3>💾 Checkpointing</h3>
+                        <p>Resume interrupted analyses seamlessly</p>
+                    </div>
+                    <div class="phoenix-feature">
+                        <h3>🔍 Self-Reflection</h3>
+                        <p>LLM verifies its own analysis quality</p>
+                    </div>
+                    <div class="phoenix-feature">
+                        <h3>🔄 Error Recovery</h3>
+                        <p>Suggests alternatives on failures</p>
+                    </div>
+                    <div class="phoenix-feature">
+                        <h3>📊 Adaptive Iterations</h3>
+                        <p>Adjusts limits based on progress</p>
+                    </div>
+                    <div class="phoenix-feature">
+                        <h3>📈 Tool Analytics</h3>
+                        <p>Detects anti-patterns and provides guidance</p>
+                    </div>
+                    <div class="phoenix-feature">
+                        <h3>🎯 Deduplication</h3>
+                        <p>Prevents duplicate tool calls</p>
+                    </div>
+                    <div class="phoenix-feature">
+                        <h3>🔐 Multi-Model Verify</h3>
+                        <p>Optional cross-model validation</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section id="architecture">
+        <div class="container">
+            <h2 class="section-title fade-in">System Architecture</h2>
+            <p class="section-subtitle fade-in">
+                A distributed, cloud-native system running on AWS ECS with intelligent orchestration
+            </p>
+
+            <div class="architecture-description fade-in">
+                <p class="arch-paragraph">
+                    Specter operates as a <strong class="highlight">fully autonomous, cloud-native system</strong>
+                    running on AWS infrastructure. An Orchestrator service continuously monitors JIRA for new tickets,
+                    automatically determines which agent should handle each request, and coordinates the entire workflow
+                    from detection to delivery. Five specialized agent workers—DARCI, SCRIBE, PRISM, HERMES, and
+                    SENTRY—run independently as ECS Fargate containers, each powered by the Phoenix autonomous engine
+                    and Claude Agent SDK.
+                </p>
+
+                <p class="arch-paragraph">
+                    The workflow is elegantly simple: tickets labeled with an agent name trigger automatic processing.
+                    Agents claim their assigned tasks, analyze the relevant code repositories from a shared EFS volume,
+                    and for BEACON, integrate with external APIs like MOANA for SQL generation. Results are uploaded to
+                    S3, and the Orchestrator posts these results back to JIRA
+                    as formatted comments. The entire cycle—from ticket creation to solution delivery—completes in under
+                    8 minutes, with configuration lookups finishing in under a minute. All data is encrypted and HIPAA
+                    compliant, with horizontal scalability built in through stateless worker design.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack Section -->
+    <section id="tech">
+        <div class="container">
+            <h2 class="section-title fade-in">Technology Stack</h2>
+            <p class="section-subtitle fade-in">Built with modern, enterprise-grade technologies</p>
+
+            <div class="tech-stack fade-in">
+                <div class="tech-badge">AWS ECS Fargate</div>
+                <div class="tech-badge">AWS Bedrock</div>
+                <div class="tech-badge">Claude Agent SDK</div>
+                <div class="tech-badge">TypeScript</div>
+                <div class="tech-badge">Node.js</div>
+                <div class="tech-badge">MySQL RDS</div>
+                <div class="tech-badge">Amazon S3</div>
+                <div class="tech-badge">Amazon EFS</div>
+                <div class="tech-badge">Docker</div>
+                <div class="tech-badge">Terraform</div>
+                <div class="tech-badge">JIRA Cloud</div>
+                <div class="tech-badge">Git</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="workflow">
+        <div class="container">
+            <h2 class="section-title fade-in">How It Works</h2>
+            <p class="section-subtitle fade-in">Simple, automated workflow from ticket creation to solution delivery</p>
+
+            <div class="phoenix-features fade-in">
+                <div class="phoenix-feature">
+                    <h3>1️⃣ Create Ticket</h3>
+                    <p>Create a JIRA ticket with one of the agent labels (DARCI, SCRIBE, PRISM, HERMES, SENTRY, BEACON)
+                        and
+                        assign to koundinya.kompalli@mhk.com</p>
+                </div>
+                <div class="phoenix-feature">
+                    <h3>2️⃣ Automatic Detection</h3>
+                    <p>Orchestrator polls JIRA every 60 seconds, detects new tickets, and analyzes customer/repository
+                        context</p>
+                </div>
+                <div class="phoenix-feature">
+                    <h3>3️⃣ Agent Processing</h3>
+                    <p>Appropriate agent worker picks up the task, clones relevant code, and performs autonomous
+                        analysis using Phoenix</p>
+                </div>
+                <div class="phoenix-feature">
+                    <h3>4️⃣ Result Delivery</h3>
+                    <p>Analysis results are uploaded to S3 and posted back to JIRA as formatted comments within minutes
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Agent Comparison Section -->
+    <section id="comparison">
+        <div class="container">
+            <h2 class="section-title fade-in">Agent Selection Guide</h2>
+            <p class="section-subtitle fade-in">Choose the right agent for your task</p>
+
+            <div class="comparison-table fade-in">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Use Case</th>
+                            <th>Agent</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>🐛 Production bug investigation</td>
+                            <td><span class="agent-badge darci">DARCI</span></td>
+                        </tr>
+                        <tr>
+                            <td>📚 Need code/API explained</td>
+                            <td><span class="agent-badge scribe">SCRIBE</span></td>
+                        </tr>
+                        <tr>
+                            <td>🎯 Planning new feature</td>
+                            <td><span class="agent-badge prism">PRISM</span></td>
+                        </tr>
+                        <tr>
+                            <td>⚙️ Finding configuration value</td>
+                            <td><span class="agent-badge hermes">HERMES</span></td>
+                        </tr>
+                        <tr>
+                            <td>🗄️ MySQL execution safety review</td>
+                            <td><span class="agent-badge sentry">SENTRY</span></td>
+                        </tr>
+                        <tr>
+                            <td>🔍 Code review needed</td>
+                            <td><span class="agent-badge darci">DARCI</span></td>
+                        </tr>
+                        <tr>
+                            <td>📖 API endpoint documentation</td>
+                            <td><span class="agent-badge scribe">SCRIBE</span></td>
+                        </tr>
+                        <tr>
+                            <td>🏗️ Architecture design decisions</td>
+                            <td><span class="agent-badge prism">PRISM</span></td>
+                        </tr>
+                        <tr>
+                            <td>🔧 Environment setup questions</td>
+                            <td><span class="agent-badge hermes">HERMES</span></td>
+                        </tr>
+                        <tr>
+                            <td>✅ Database change validation</td>
+                            <td><span class="agent-badge sentry">SENTRY</span></td>
+                        </tr>
+                        <tr>
+                            <td>📊 Bulk case updates from Excel</td>
+                            <td><span class="agent-badge beacon">BEACON</span></td>
+                        </tr>
+                        <tr>
+                            <td>🔄 MOANA SQL generation + validation</td>
+                            <td><span class="agent-badge beacon">BEACON</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="subsection-title fade-in">Performance Characteristics</h3>
+            <div class="performance-table fade-in">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Agent</th>
+                            <th>Typical Duration</th>
+                            <th>Characteristics</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="agent-badge darci">DARCI</span></td>
+                            <td>3-7 minutes</td>
+                            <td>Thorough investigation</td>
+                        </tr>
+                        <tr>
+                            <td><span class="agent-badge scribe">SCRIBE</span></td>
+                            <td>2-4 minutes</td>
+                            <td>Moderate analysis</td>
+                        </tr>
+                        <tr>
+                            <td><span class="agent-badge prism">PRISM</span></td>
+                            <td>4-8 minutes</td>
+                            <td>Detailed planning</td>
+                        </tr>
+                        <tr>
+                            <td><span class="agent-badge hermes">HERMES</span></td>
+                            <td>&lt;1 minute</td>
+                            <td>Fast lookup</td>
+                        </tr>
+                        <tr>
+                            <td><span class="agent-badge sentry">SENTRY</span></td>
+                            <td>2-5 minutes</td>
+                            <td>Safety validation</td>
+                        </tr>
+                        <tr>
+                            <td><span class="agent-badge beacon">BEACON</span></td>
+                            <td>3-6 minutes</td>
+                            <td>MOANA + HBM validation</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section>
+        <div class="container">
+            <div class="cta-section fade-in">
+                <h2 class="section-title">Ready to Experience Specter?</h2>
+                <p class="section-subtitle">
+                    Join the future of autonomous software intelligence at MedHok
+                </p>
+                <a href="https://mhkjira.atlassian.net" class="cta-button" target="_blank">
+                    Open JIRA & Create Ticket
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>Built with ❤️ by the Agentic AI Team</p>
+            <p style="margin-top: 10px;">Powered by AWS Bedrock, Claude Agent SDK, and Phoenix Engine</p>
+            <p style="margin-top: 20px; font-size: 0.9rem;">
+                HIPAA Compliant | SOC 2 | Enterprise Security
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Fade-in animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
