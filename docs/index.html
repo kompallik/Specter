@@ -1,0 +1,2536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Product Factory — AI Agent Cluster powered by Claude + AWS Bedrock. Nine specialized agents for autonomous software analysis, database safety, and engineering acceleration.">
+  <meta property="og:title" content="Product Factory | AI Agent Cluster">
+  <meta property="og:description" content="Nine specialized AI agents. Zero bottlenecks. Autonomous engineering intelligence for healthcare software teams.">
+  <title>Product Factory | AI Agent Cluster</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Barlow+Condensed:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ═══════════════════════════════════════════════════════
+       DESIGN TOKENS
+    ═══════════════════════════════════════════════════════ */
+    :root {
+      --bg:            #09090A;
+      --bg-raised:     #111110;
+      --bg-card:       #161613;
+      --bg-card-hover: #1C1C18;
+      --rule:          #252520;
+      --rule-bright:   #3A3A34;
+
+      --gold:          #C8991E;
+      --gold-dim:      rgba(200,153,30,0.15);
+      --gold-glow:     rgba(200,153,30,0.35);
+      --gold-text:     #D4A830;
+      --green:         #3D8B5C;
+      --green-dim:     rgba(61,139,92,0.15);
+      --red:           #B83232;
+      --red-dim:       rgba(184,50,50,0.12);
+
+      --text:          #EDE5CC;
+      --text-warm:     #C8BC9E;
+      --text-muted:    #7A7060;
+      --text-dim:      #3E3A30;
+
+      --font-display:  'Fraunces', Georgia, serif;
+      --font-body:     'EB Garamond', Georgia, serif;
+      --font-label:    'Barlow Condensed', sans-serif;
+      --font-mono:     'JetBrains Mono', monospace;
+
+      --transition:    cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       RESET & BASE
+    ═══════════════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      font-size: 18px;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--rule-bright); border-radius: 2px; }
+
+    /* Grain overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      pointer-events: none;
+      opacity: 0.022;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       NAVIGATION — MASTHEAD STYLE
+    ═══════════════════════════════════════════════════════ */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 500;
+      background: rgba(9, 9, 10, 0.88);
+      backdrop-filter: blur(20px) saturate(140%);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .nav-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2.5rem;
+      height: 56px;
+    }
+
+    .nav-brand {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 700;
+      font-style: italic;
+      letter-spacing: 0.05em;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .nav-brand span { color: var(--gold-text); }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: var(--font-label);
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-meta {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+    }
+    .nav-meta .version { color: var(--gold); }
+
+    /* ═══════════════════════════════════════════════════════
+       SHARED LAYOUT PRIMITIVES
+    ═══════════════════════════════════════════════════════ */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2.5rem;
+    }
+
+    .section-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-label);
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.2rem;
+    }
+    .section-eyebrow::before {
+      content: '';
+      display: block;
+      width: 20px;
+      height: 1px;
+      background: var(--gold);
+    }
+
+    .rule-h { height: 1px; background: var(--rule); }
+    .rule-h.bright { background: var(--rule-bright); }
+
+    /* ═══════════════════════════════════════════════════════
+       HERO SECTION
+    ═══════════════════════════════════════════════════════ */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 8rem 2.5rem 5rem;
+      overflow: hidden;
+    }
+
+    /* Background grid lines */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--rule) 1px, transparent 1px),
+        linear-gradient(90deg, var(--rule) 1px, transparent 1px);
+      background-size: 80px 80px;
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    /* Radial glow from center */
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(200,153,30,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 2;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-label);
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      background: var(--gold-dim);
+      border: 1px solid rgba(200,153,30,0.3);
+      padding: 0.35rem 0.9rem;
+      margin-bottom: 2.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s var(--transition) 0.1s forwards;
+    }
+    .hero-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--gold);
+      border-radius: 50%;
+      animation: pulse 2s ease infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.6); }
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(4rem, 14vw, 14rem);
+      font-weight: 800;
+      font-style: italic;
+      line-height: 0.85;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      margin-bottom: 0.1em;
+      opacity: 0;
+      animation: fadeUp 1s var(--transition) 0.25s forwards;
+    }
+    .hero-title .ghost {
+      -webkit-text-stroke: 1px var(--rule-bright);
+      color: transparent;
+    }
+
+    .hero-sub {
+      display: flex;
+      align-items: baseline;
+      gap: 1.5rem;
+      margin-top: 1.2rem;
+      margin-bottom: 2.5rem;
+      opacity: 0;
+      animation: fadeUp 0.9s var(--transition) 0.4s forwards;
+    }
+
+    .hero-tagline {
+      font-family: var(--font-display);
+      font-size: clamp(1.3rem, 3vw, 2.2rem);
+      font-weight: 400;
+      font-style: italic;
+      color: var(--text-warm);
+      line-height: 1.2;
+    }
+
+    .hero-divider-v {
+      width: 1px;
+      height: 3rem;
+      background: var(--rule-bright);
+      flex-shrink: 0;
+    }
+
+    .hero-meta {
+      font-family: var(--font-label);
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      line-height: 1.8;
+    }
+    .hero-meta strong { color: var(--gold-text); font-weight: 600; }
+
+    /* Terminal readout */
+    .hero-terminal {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--text-warm);
+      background: rgba(255,255,255,0.025);
+      border: 1px solid var(--rule-bright);
+      border-left: 3px solid var(--gold);
+      padding: 1rem 1.4rem;
+      margin-top: 2.5rem;
+      max-width: 600px;
+      opacity: 0;
+      animation: fadeUp 0.9s var(--transition) 0.55s forwards;
+    }
+    .hero-terminal .prompt { color: var(--gold); margin-right: 0.6em; }
+    .hero-terminal .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 1em;
+      background: var(--gold);
+      vertical-align: text-bottom;
+      animation: blink 1.1s step-end infinite;
+    }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
+    .hero-ctas {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2.5rem;
+      opacity: 0;
+      animation: fadeUp 0.9s var(--transition) 0.7s forwards;
+    }
+
+    .btn {
+      font-family: var(--font-label);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 0.85rem 2rem;
+      border: 1px solid;
+      cursor: pointer;
+      transition: all 0.25s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6em;
+    }
+    .btn-primary {
+      background: var(--gold);
+      color: var(--bg);
+      border-color: var(--gold);
+    }
+    .btn-primary:hover {
+      background: #D4A830;
+      border-color: #D4A830;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px var(--gold-glow);
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-warm);
+      border-color: var(--rule-bright);
+    }
+    .btn-secondary:hover {
+      border-color: var(--text-muted);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: var(--font-label);
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      opacity: 0;
+      animation: fadeUp 1s var(--transition) 1.2s forwards;
+    }
+    .scroll-hint-line {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, var(--rule-bright), transparent);
+      animation: scrollLine 2s ease infinite 1.5s;
+    }
+    @keyframes scrollLine {
+      0% { transform: scaleY(0); transform-origin: top; opacity: 0; }
+      40% { transform: scaleY(1); transform-origin: top; opacity: 1; }
+      60% { transform: scaleY(1); transform-origin: bottom; opacity: 1; }
+      100% { transform: scaleY(0); transform-origin: bottom; opacity: 0; }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       STATS TICKER
+    ═══════════════════════════════════════════════════════ */
+    .stats-ticker {
+      background: var(--bg-raised);
+      border-top: 1px solid var(--rule-bright);
+      border-bottom: 1px solid var(--rule-bright);
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .ticker-inner {
+      display: flex;
+      align-items: stretch;
+    }
+
+    .ticker-label {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      padding: 0 2rem;
+      background: var(--gold);
+      font-family: var(--font-label);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--bg);
+    }
+
+    .ticker-stats {
+      display: flex;
+      align-items: stretch;
+      flex: 1;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.2rem 2.5rem;
+      border-right: 1px solid var(--rule);
+      flex: 1;
+    }
+
+    .stat-number {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-family: var(--font-label);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       ABOUT SECTION — EDITORIAL 2-COLUMN
+    ═══════════════════════════════════════════════════════ */
+    .about {
+      padding: 7rem 2.5rem;
+    }
+
+    .about-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: start;
+    }
+
+    .about-left {}
+
+    .about-headline {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 700;
+      font-style: italic;
+      line-height: 1.1;
+      color: var(--text);
+      margin-bottom: 1.5rem;
+    }
+
+    .about-body {
+      font-size: 1.05rem;
+      color: var(--text-warm);
+      line-height: 1.8;
+      margin-bottom: 1.2rem;
+    }
+
+    .pull-quote {
+      margin: 2rem 0;
+      padding: 1.5rem 0 1.5rem 2rem;
+      border-left: 3px solid var(--gold);
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-style: italic;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    .about-right {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .tech-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .pill {
+      font-family: var(--font-label);
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      background: var(--bg-card);
+      border: 1px solid var(--rule-bright);
+      padding: 0.3rem 0.8rem;
+    }
+    .pill.highlight {
+      color: var(--gold);
+      background: var(--gold-dim);
+      border-color: rgba(200,153,30,0.3);
+    }
+
+    .about-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--rule);
+      border: 1px solid var(--rule);
+    }
+    .about-stat {
+      background: var(--bg-card);
+      padding: 1.5rem;
+    }
+    .about-stat-number {
+      font-family: var(--font-display);
+      font-size: 3rem;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--gold-text);
+      margin-bottom: 0.4rem;
+    }
+    .about-stat-label {
+      font-family: var(--font-label);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       AGENTS SECTION — DOSSIER CARDS
+    ═══════════════════════════════════════════════════════ */
+    .agents {
+      padding: 7rem 2.5rem;
+      background: var(--bg-raised);
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .agents-header {
+      max-width: 1200px;
+      margin: 0 auto 4rem;
+    }
+
+    .agents-headline {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 4vw, 3.5rem);
+      font-weight: 700;
+      font-style: italic;
+      color: var(--text);
+      margin-bottom: 1rem;
+    }
+
+    .agents-sub {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      max-width: 55ch;
+    }
+
+    .agents-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--rule);
+      border: 1px solid var(--rule);
+    }
+
+    .agent-card {
+      background: var(--bg-card);
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+      transition: background 0.3s;
+    }
+    .agent-card:hover { background: var(--bg-card-hover); }
+    .agent-card:hover .agent-glow { opacity: 1; }
+
+    .agent-glow {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.4s;
+      pointer-events: none;
+    }
+
+    .agent-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+
+    .agent-number {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+    }
+
+    .agent-badge-hero {
+      font-family: var(--font-label);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--green);
+      background: var(--green-dim);
+      border: 1px solid rgba(61,139,92,0.3);
+      padding: 0.2rem 0.6rem;
+    }
+
+    .agent-codename {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 800;
+      font-style: italic;
+      letter-spacing: -0.01em;
+      line-height: 1;
+      margin-bottom: 0.35rem;
+    }
+
+    .agent-fullname {
+      font-family: var(--font-label);
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 1.2rem;
+      line-height: 1.5;
+    }
+
+    .agent-rule {
+      height: 1px;
+      margin-bottom: 1.2rem;
+    }
+
+    .agent-desc {
+      font-size: 0.9rem;
+      color: var(--text-warm);
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+    }
+
+    .agent-outputs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    .agent-output-tag {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--rule-bright);
+      padding: 0.2rem 0.55rem;
+    }
+
+    /* Per-agent colors */
+    .agent-darci   .agent-codename { color: #E86070; }
+    .agent-darci   .agent-rule     { background: rgba(232,96,112,0.3); }
+    .agent-darci   .agent-glow     { background: radial-gradient(ellipse 80% 80% at 50% 0%, rgba(232,96,112,0.06), transparent); }
+    .agent-scribe  .agent-codename { color: #5B9FE8; }
+    .agent-scribe  .agent-rule     { background: rgba(91,159,232,0.3); }
+    .agent-scribe  .agent-glow     { background: radial-gradient(ellipse 80% 80% at 50% 0%, rgba(91,159,232,0.06), transparent); }
+    .agent-prism   .agent-codename { color: #B07ED4; }
+    .agent-prism   .agent-rule     { background: rgba(176,126,212,0.3); }
+    .agent-prism   .agent-glow     { background: radial-gradient(ellipse 80% 80% at 50% 0%, rgba(176,126,212,0.06), transparent); }
+    .agent-hermes  .agent-codename { color: #D4922A; }
+    .agent-hermes  .agent-rule     { background: rgba(212,146,42,0.3); }
+    .agent-hermes  .agent-glow     { background: radial-gradient(ellipse 80% 80% at 50% 0%, rgba(212,146,42,0.06), transparent); }
+    .agent-sentry  .agent-codename { color: #4EBF70; }
+    .agent-sentry  .agent-rule     { background: rgba(78,191,112,0.3); }
+    .agent-sentry  .agent-glow     { background: radial-gradient(ellipse 80% 80% at 50% 0%, rgba(78,191,112,0.08), transparent); }
+    .agent-beacon  .agent-codename { color: #5BC8E8; }
+    .agent-beacon  .agent-rule     { background: rgba(91,200,232,0.3); }
+    .agent-beacon  .agent-glow     { background: radial-gradient(ellipse 80% 80% at 50% 0%, rgba(91,200,232,0.06), transparent); }
+    .agent-bcat    .agent-codename { color: #C8991E; }
+    .agent-bcat    .agent-rule     { background: rgba(200,153,30,0.3); }
+    .agent-bcat    .agent-glow     { background: radial-gradient(ellipse 80% 80% at 50% 0%, rgba(200,153,30,0.06), transparent); }
+    .agent-veritas .agent-codename { color: #A08060; }
+    .agent-veritas .agent-rule     { background: rgba(160,128,96,0.3); }
+    .agent-veritas .agent-glow     { background: radial-gradient(ellipse 80% 80% at 50% 0%, rgba(160,128,96,0.06), transparent); }
+
+    /* ═══════════════════════════════════════════════════════
+       SENTRY DEEP DIVE
+    ═══════════════════════════════════════════════════════ */
+    .sentry-section {
+      padding: 7rem 2.5rem;
+    }
+
+    .sentry-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: start;
+    }
+
+    .sentry-left {}
+
+    .sentry-headline {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 4.5vw, 3.8rem);
+      font-weight: 700;
+      font-style: italic;
+      line-height: 1.1;
+      color: var(--text);
+      margin-bottom: 1.5rem;
+    }
+
+    .sentry-body {
+      font-size: 1.05rem;
+      color: var(--text-warm);
+      line-height: 1.8;
+      margin-bottom: 2rem;
+    }
+
+    .sentry-features {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .sentry-feature {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.92rem;
+      color: var(--text-warm);
+      line-height: 1.6;
+    }
+    .sentry-feature::before {
+      content: '→';
+      color: var(--green);
+      flex-shrink: 0;
+      font-family: var(--font-mono);
+      margin-top: 0.05em;
+    }
+
+    .sentry-decisions {
+      display: flex;
+      gap: 0.6rem;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+    .decision-pill {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      padding: 0.45rem 1rem;
+      border: 1px solid;
+    }
+    .decision-pill.safe   { color: #4EBF70; border-color: rgba(78,191,112,0.4); background: rgba(78,191,112,0.08); }
+    .decision-pill.caution { color: #D4922A; border-color: rgba(212,146,42,0.4); background: rgba(212,146,42,0.08); }
+    .decision-pill.danger { color: #B83232; border-color: rgba(184,50,50,0.4); background: rgba(184,50,50,0.08); }
+
+    /* Terminal mockup */
+    .sentry-terminal {
+      background: #0C0C0A;
+      border: 1px solid var(--rule-bright);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      line-height: 1.7;
+      overflow: hidden;
+    }
+
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.7rem 1.2rem;
+      background: var(--bg-raised);
+      border-bottom: 1px solid var(--rule-bright);
+    }
+    .terminal-dots { display: flex; gap: 0.4rem; }
+    .terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .td-r { background: #B83232; }
+    .td-y { background: #C8991E; }
+    .td-g { background: #3D8B5C; }
+    .terminal-title {
+      font-family: var(--font-label);
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .terminal-stamp {
+      font-size: 0.6rem;
+      color: var(--green);
+      letter-spacing: 0.08em;
+    }
+
+    .terminal-body {
+      padding: 1.2rem 1.5rem;
+      color: var(--text-warm);
+    }
+
+    .t-label {
+      font-family: var(--font-label);
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-top: 0.8rem;
+      margin-bottom: 0.3rem;
+    }
+    .t-pass { color: #4EBF70; }
+    .t-na   { color: var(--text-dim); }
+    .t-warn { color: #D4922A; }
+    .t-fail { color: #B83232; }
+    .t-dim  { color: var(--text-muted); }
+    .t-gold { color: var(--gold-text); }
+
+    .terminal-check {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.12rem 0;
+    }
+    .terminal-check-name { color: var(--text-warm); }
+
+    .terminal-verdict {
+      margin-top: 1rem;
+      padding: 0.8rem 1rem;
+      background: rgba(61,139,92,0.1);
+      border: 1px solid rgba(78,191,112,0.3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .verdict-decision {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #4EBF70;
+    }
+    .verdict-risk {
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       ARCHITECTURE
+    ═══════════════════════════════════════════════════════ */
+    .architecture {
+      padding: 7rem 2.5rem;
+      background: var(--bg-raised);
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .architecture-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .arch-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      margin-bottom: 4rem;
+    }
+
+    .arch-headline {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 3.5vw, 3rem);
+      font-weight: 700;
+      font-style: italic;
+      color: var(--text);
+      line-height: 1.15;
+    }
+
+    .arch-body {
+      font-size: 1rem;
+      color: var(--text-muted);
+      line-height: 1.8;
+      padding-top: 0.3rem;
+    }
+
+    .arch-diagram {
+      background: var(--bg-card);
+      border: 1px solid var(--rule-bright);
+      padding: 3rem;
+    }
+
+    .arch-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .arch-row:last-child { margin-bottom: 0; }
+
+    .arch-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      flex: 1;
+      text-align: center;
+    }
+    .arch-node-box {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      border: 1px solid var(--rule-bright);
+      background: var(--bg-raised);
+      font-family: var(--font-label);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-warm);
+    }
+    .arch-node-box.gold {
+      border-color: rgba(200,153,30,0.4);
+      color: var(--gold-text);
+      background: var(--gold-dim);
+    }
+    .arch-node-sub {
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+    }
+
+    .arch-arrow {
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .arch-cluster {
+      border: 1px solid rgba(200,153,30,0.3);
+      padding: 1.5rem;
+      margin: 0.5rem 0;
+      position: relative;
+    }
+    .arch-cluster-label {
+      position: absolute;
+      top: -0.6rem;
+      left: 1rem;
+      font-family: var(--font-label);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      background: var(--bg-card);
+      padding: 0 0.5rem;
+    }
+    .arch-agents-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .arch-agent-chip {
+      flex: 1;
+      text-align: center;
+      padding: 0.6rem 0.3rem;
+      background: var(--bg-raised);
+      border: 1px solid var(--rule);
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      font-weight: 700;
+      font-style: italic;
+    }
+    .arch-agent-chip.d  { color: #E86070; border-color: rgba(232,96,112,0.25); }
+    .arch-agent-chip.s  { color: #5B9FE8; border-color: rgba(91,159,232,0.25); }
+    .arch-agent-chip.p  { color: #B07ED4; border-color: rgba(176,126,212,0.25); }
+    .arch-agent-chip.h  { color: #D4922A; border-color: rgba(212,146,42,0.25); }
+    .arch-agent-chip.se { color: #4EBF70; border-color: rgba(78,191,112,0.25); }
+    .arch-agent-chip.b  { color: #5BC8E8; border-color: rgba(91,200,232,0.25); }
+    .arch-agent-chip.bc { color: #C8991E; border-color: rgba(200,153,30,0.25); }
+    .arch-agent-chip.v  { color: #A08060; border-color: rgba(160,128,96,0.25); }
+
+    /* ═══════════════════════════════════════════════════════
+       HOW IT WORKS
+    ═══════════════════════════════════════════════════════ */
+    .workflow {
+      padding: 7rem 2.5rem;
+    }
+
+    .workflow-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .workflow-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      margin-bottom: 4rem;
+    }
+
+    .workflow-headline {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 3.5vw, 3rem);
+      font-weight: 700;
+      font-style: italic;
+      color: var(--text);
+      line-height: 1.15;
+    }
+
+    .workflow-body {
+      font-size: 1rem;
+      color: var(--text-muted);
+      line-height: 1.8;
+      padding-top: 0.3rem;
+    }
+
+    .workflow-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--rule);
+      border: 1px solid var(--rule);
+    }
+
+    .workflow-step {
+      background: var(--bg-card);
+      padding: 2.5rem 2rem;
+      position: relative;
+    }
+
+    .step-num {
+      font-family: var(--font-display);
+      font-size: 4rem;
+      font-weight: 900;
+      font-style: italic;
+      color: var(--text-dim);
+      line-height: 1;
+      margin-bottom: 1.5rem;
+      transition: color 0.3s;
+    }
+    .workflow-step:hover .step-num { color: var(--gold); }
+
+    .step-title {
+      font-family: var(--font-label);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text);
+      margin-bottom: 0.8rem;
+    }
+
+    .step-body {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .step-connector {
+      position: absolute;
+      top: 3.5rem;
+      right: -12px;
+      width: 24px;
+      height: 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--rule-bright);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      z-index: 1;
+    }
+    .workflow-step:last-child .step-connector { display: none; }
+
+    /* ═══════════════════════════════════════════════════════
+       PERMISSIONS
+    ═══════════════════════════════════════════════════════ */
+    .permissions {
+      padding: 7rem 2.5rem;
+      background: var(--bg-raised);
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .permissions-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 5rem;
+      align-items: center;
+    }
+
+    .permissions-left {}
+
+    .permissions-headline {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 3.5vw, 3rem);
+      font-weight: 700;
+      font-style: italic;
+      color: var(--text);
+      line-height: 1.15;
+      margin-bottom: 1rem;
+    }
+
+    .permissions-body {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      line-height: 1.8;
+    }
+
+    .permissions-ladder {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: var(--rule);
+      border: 1px solid var(--rule);
+    }
+
+    .perm-level {
+      background: var(--bg-card);
+      padding: 1.2rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      transition: background 0.2s;
+    }
+    .perm-level:hover { background: var(--bg-card-hover); }
+    .perm-level.top {
+      background: rgba(61,139,92,0.08);
+      border-left: 3px solid var(--green);
+    }
+
+    .perm-number {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      width: 1rem;
+      flex-shrink: 0;
+    }
+
+    .perm-name {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--gold-text);
+      width: 11rem;
+      flex-shrink: 0;
+    }
+
+    .perm-tools {
+      font-family: var(--font-label);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .perm-badge {
+      margin-left: auto;
+      font-family: var(--font-label);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--green);
+      background: var(--green-dim);
+      border: 1px solid rgba(61,139,92,0.3);
+      padding: 0.15rem 0.6rem;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       CTA
+    ═══════════════════════════════════════════════════════ */
+    .cta-section {
+      padding: 8rem 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--rule) 1px, transparent 1px),
+        linear-gradient(90deg, var(--rule) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
+    .cta-section::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 70% at 50% 50%, rgba(200,153,30,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-inner {
+      position: relative;
+      z-index: 2;
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .cta-eyebrow {
+      font-family: var(--font-label);
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.5rem;
+    }
+
+    .cta-headline {
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 8vw, 7rem);
+      font-weight: 900;
+      font-style: italic;
+      line-height: 0.9;
+      color: var(--text);
+      margin-bottom: 1.5rem;
+    }
+
+    .cta-sub {
+      font-family: var(--font-display);
+      font-size: clamp(1.1rem, 2vw, 1.5rem);
+      font-style: italic;
+      font-weight: 400;
+      color: var(--text-muted);
+      margin-bottom: 3rem;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════════════════════════ */
+    footer {
+      background: var(--bg-raised);
+      border-top: 1px solid var(--rule-bright);
+      padding: 2.5rem;
+    }
+
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-brand {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 800;
+      font-style: italic;
+      color: var(--text);
+    }
+    .footer-brand span { color: var(--gold-text); }
+
+    .footer-copy {
+      font-family: var(--font-label);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      text-align: center;
+    }
+
+    .footer-version {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       SCROLL REVEAL
+    ═══════════════════════════════════════════════════════ */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.7s var(--transition), transform 0.7s var(--transition);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+    .reveal-delay-5 { transition-delay: 0.5s; }
+    .reveal-delay-6 { transition-delay: 0.6s; }
+    .reveal-delay-7 { transition-delay: 0.7s; }
+    .reveal-delay-8 { transition-delay: 0.8s; }
+    .reveal-delay-9 { transition-delay: 0.9s; }
+
+    /* ═══════════════════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════════════════ */
+    @media (max-width: 960px) {
+      .about-grid,
+      .sentry-inner,
+      .arch-header,
+      .workflow-header,
+      .permissions-inner { grid-template-columns: 1fr; gap: 2.5rem; }
+      .agents-grid { grid-template-columns: repeat(2, 1fr); }
+      .workflow-steps { grid-template-columns: repeat(2, 1fr); }
+      .step-connector { display: none; }
+      .arch-agents-row { flex-wrap: wrap; }
+    }
+    @media (max-width: 640px) {
+      .agents-grid { grid-template-columns: 1fr; }
+      .workflow-steps { grid-template-columns: 1fr; }
+      .ticker-inner { flex-direction: column; }
+      .ticker-stats { flex-direction: column; }
+      .stat-item { border-right: none; border-bottom: 1px solid var(--rule); }
+      .nav-links { display: none; }
+      .footer-inner { flex-direction: column; gap: 1rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════════════════
+       NAVIGATION
+  ══════════════════════════════════════════════════════ -->
+  <nav>
+    <div class="nav-top">
+      <a href="#" class="nav-brand">Product <span>Factory</span></a>
+      <ul class="nav-links">
+        <li><a href="#about">Overview</a></li>
+        <li><a href="#agents">Agents</a></li>
+        <li><a href="#sentry">Deep Dives</a></li>
+        <li><a href="#architecture">Architecture</a></li>
+        <li><a href="#workflow">Workflow</a></li>
+        <li><a href="https://github.com/mhk-repos/cp-autonomous-ai-agents-platform" target="_blank">GitHub →</a></li>
+      </ul>
+      <div class="nav-meta">
+        v2.0 · <span class="version">ACTIVE</span> · 9 AGENTS
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════════════════════════════
+       HERO
+  ══════════════════════════════════════════════════════ -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-badge">
+        Product Factory &middot; AI Agent Cluster &middot; v2.0 &middot; Claude + AWS Bedrock
+      </div>
+
+      <h1 class="hero-title">
+        PRODUCT<br><span class="ghost">FACTORY</span>
+      </h1>
+
+      <div class="hero-sub">
+        <div class="hero-tagline">Autonomous Intelligence.<br>Mission Critical.</div>
+        <div class="hero-divider-v"></div>
+        <div class="hero-meta">
+          <strong>Nine specialized agents.</strong><br>
+          Zero human bottlenecks.<br>
+          Healthcare engineering, redefined.
+        </div>
+      </div>
+
+      <div class="hero-terminal">
+        <span class="prompt">product-factory&nbsp;›</span>
+        <span id="typed-text"></span><span class="cursor"></span>
+      </div>
+
+      <div class="hero-ctas">
+        <a href="#agents" class="btn btn-primary">Explore Agents →</a>
+        <a href="#sentry" class="btn btn-secondary">Agent Deep Dives</a>
+      </div>
+    </div>
+    <div class="scroll-hint">
+      <span>Scroll</span>
+      <div class="scroll-hint-line"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       STATS TICKER
+  ══════════════════════════════════════════════════════ -->
+  <div class="stats-ticker">
+    <div class="ticker-inner">
+      <div class="ticker-label">Live Status</div>
+      <div class="ticker-stats">
+        <div class="stat-item">
+          <div>
+            <div class="stat-number" data-count="9">9</div>
+            <div class="stat-label">Specialized<br>Agents</div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div>
+            <div class="stat-number" data-count="0">0</div>
+            <div class="stat-label">Manual Reviews<br>Required</div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div>
+            <div class="stat-number" data-count="18">18</div>
+            <div class="stat-label">SENTRY Validation<br>Checks</div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div>
+            <div class="stat-number">∞</div>
+            <div class="stat-label">Concurrent<br>Capacity</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       ABOUT
+  ══════════════════════════════════════════════════════ -->
+  <section class="about" id="about">
+    <div class="about-grid">
+      <div class="about-left">
+        <div class="section-eyebrow reveal">What is Product Factory</div>
+        <h2 class="about-headline reveal reveal-delay-1">Nine agents.<br>One cluster.<br>Zero bottlenecks.</h2>
+        <p class="about-body reveal reveal-delay-2">Product Factory is an AI agent cluster powered by Claude and AWS Bedrock that autonomously analyzes software, validates database operations, and accelerates engineering workflows — without a human in the loop.</p>
+        <blockquote class="pull-quote reveal reveal-delay-3">"Each agent carries a codename and a precise directive."</blockquote>
+        <p class="about-body reveal reveal-delay-4">They integrate directly with JIRA, poll for labeled tickets, execute analysis against live codebases, and post structured results back — in minutes, not hours.</p>
+      </div>
+      <div class="about-right">
+        <div class="reveal reveal-delay-2">
+          <div class="section-eyebrow">Tech Stack</div>
+          <div class="tech-pills">
+            <span class="pill highlight">Claude Sonnet 4.6</span>
+            <span class="pill highlight">AWS Bedrock</span>
+            <span class="pill">JIRA Integration</span>
+            <span class="pill">MySQL Queue</span>
+            <span class="pill">S3 Storage</span>
+            <span class="pill">WebSocket / SSE</span>
+            <span class="pill">AWS ECS</span>
+            <span class="pill">HIPAA-aware</span>
+          </div>
+        </div>
+        <div class="about-stats reveal reveal-delay-3">
+          <div class="about-stat">
+            <div class="about-stat-number" data-count="9">9</div>
+            <div class="about-stat-label">Specialized Agents</div>
+          </div>
+          <div class="about-stat">
+            <div class="about-stat-number" data-count="0">0</div>
+            <div class="about-stat-label">Manual Reviews</div>
+          </div>
+          <div class="about-stat">
+            <div class="about-stat-number" data-count="18">18</div>
+            <div class="about-stat-label">SENTRY Checks</div>
+          </div>
+          <div class="about-stat">
+            <div class="about-stat-number">∞</div>
+            <div class="about-stat-label">Scale</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule-h bright"></div>
+
+  <!-- ══════════════════════════════════════════════════════
+       AGENTS
+  ══════════════════════════════════════════════════════ -->
+  <section class="agents" id="agents">
+    <div class="agents-header">
+      <div class="section-eyebrow reveal">The Cluster</div>
+      <h2 class="agents-headline reveal reveal-delay-1">Nine specialists.<br>One unified mission.</h2>
+      <p class="agents-sub reveal reveal-delay-2">Purpose-built for healthcare engineering teams. Each agent is a precision instrument — no generalist hallucinations, no ambiguous outputs.</p>
+    </div>
+
+    <div class="agents-grid">
+
+      <!-- DARCI -->
+      <div class="agent-card agent-darci reveal">
+        <div class="agent-glow"></div>
+        <div class="agent-card-top">
+          <div class="agent-number">AGENT-01 / DARCI</div>
+        </div>
+        <div class="agent-codename">DARCI</div>
+        <div class="agent-fullname">Defect Analysis &amp; Root Cause Identification</div>
+        <div class="agent-rule"></div>
+        <p class="agent-desc">Autonomously hunts bugs through git history. Traverses <code>blame</code>, <code>log</code>, and <code>diff</code> to pinpoint the exact introducing commit and proposes surgical code fixes.</p>
+        <div class="agent-outputs">
+          <span class="agent-output-tag">Introducing Commit</span>
+          <span class="agent-output-tag">Root Cause</span>
+          <span class="agent-output-tag">Code Diff</span>
+        </div>
+      </div>
+
+      <!-- SCRIBE -->
+      <div class="agent-card agent-scribe reveal reveal-delay-1">
+        <div class="agent-glow"></div>
+        <div class="agent-card-top">
+          <div class="agent-number">AGENT-02 / SCRIBE</div>
+        </div>
+        <div class="agent-codename">SCRIBE</div>
+        <div class="agent-fullname">Simple Clear Rundown of Implementations, Behavior &amp; Endpoints</div>
+        <div class="agent-rule"></div>
+        <p class="agent-desc">Explains how any feature works end-to-end. Traces execution flow, maps components, and produces living documentation for any codebase — instantly.</p>
+        <div class="agent-outputs">
+          <span class="agent-output-tag">Overview</span>
+          <span class="agent-output-tag">Execution Flow</span>
+          <span class="agent-output-tag">Key Concepts</span>
+        </div>
+      </div>
+
+      <!-- PRISM -->
+      <div class="agent-card agent-prism reveal reveal-delay-2">
+        <div class="agent-glow"></div>
+        <div class="agent-card-top">
+          <div class="agent-number">AGENT-03 / PRISM</div>
+        </div>
+        <div class="agent-codename">PRISM</div>
+        <div class="agent-fullname">Planning &amp; Refinement with Intelligent Systems</div>
+        <div class="agent-rule"></div>
+        <p class="agent-desc">Converts JIRA tickets into detailed implementation plans. Identifies affected files, provides step-by-step guidance, testing strategy, and risk analysis.</p>
+        <div class="agent-outputs">
+          <span class="agent-output-tag">Target Files</span>
+          <span class="agent-output-tag">Impl Steps</span>
+          <span class="agent-output-tag">Risk Analysis</span>
+        </div>
+      </div>
+
+      <!-- HERMES -->
+      <div class="agent-card agent-hermes reveal reveal-delay-3">
+        <div class="agent-glow"></div>
+        <div class="agent-card-top">
+          <div class="agent-number">AGENT-04 / HERMES</div>
+        </div>
+        <div class="agent-codename">HERMES</div>
+        <div class="agent-fullname">Heuristic Engine for Rules, Modes &amp; Environment Settings</div>
+        <div class="agent-rule"></div>
+        <p class="agent-desc">Instant configuration lookup. Finds any config value across any codebase with full context: dependencies, security considerations, and HIPAA implications.</p>
+        <div class="agent-outputs">
+          <span class="agent-output-tag">Config Value</span>
+          <span class="agent-output-tag">Dependencies</span>
+          <span class="agent-output-tag">HIPAA Impact</span>
+        </div>
+      </div>
+
+      <!-- SENTRY -->
+      <div class="agent-card agent-sentry reveal reveal-delay-4">
+        <div class="agent-glow"></div>
+        <div class="agent-card-top">
+          <div class="agent-number">AGENT-05 / SENTRY</div>
+        </div>
+        <div class="agent-codename">SENTRY</div>
+        <div class="agent-fullname">Safety &amp; Execution eNtry Risk analYzer</div>
+        <div class="agent-rule"></div>
+        <p class="agent-desc">Reviews MySQL execution tickets against Hibernate HBM models. Issues GO / NO-GO decisions with a full 18-point checklist — your last line of database defense.</p>
+        <div class="agent-outputs">
+          <span class="agent-output-tag">Risk Level</span>
+          <span class="agent-output-tag">GO / NO-GO</span>
+          <span class="agent-output-tag">Checklist</span>
+          <span class="agent-output-tag">Corrected SQL</span>
+        </div>
+      </div>
+
+      <!-- BEACON -->
+      <div class="agent-card agent-beacon reveal reveal-delay-5">
+        <div class="agent-glow"></div>
+        <div class="agent-card-top">
+          <div class="agent-number">AGENT-06 / BEACON</div>
+        </div>
+        <div class="agent-codename">BEACON</div>
+        <div class="agent-fullname">Backend Execution Agent for Case Orchestrated Normalization</div>
+        <div class="agent-rule"></div>
+        <p class="agent-desc">Validates AI-generated SQL against HBM models before execution. Ensures correct table/column mapping, tenant scoping, and schema alignment for XLSX imports.</p>
+        <div class="agent-outputs">
+          <span class="agent-output-tag">Schema Validation</span>
+          <span class="agent-output-tag">Tenant Scope</span>
+          <span class="agent-output-tag">Mapping Report</span>
+        </div>
+      </div>
+
+      <!-- BCAT -->
+      <div class="agent-card agent-bcat reveal reveal-delay-6" style="grid-column: span 1;">
+        <div class="agent-glow"></div>
+        <div class="agent-card-top">
+          <div class="agent-number">AGENT-07/08 / BCAT</div>
+        </div>
+        <div class="agent-codename">BCAT</div>
+        <div class="agent-fullname">Bulk Create And Track — Planner &amp; Executor</div>
+        <div class="agent-rule"></div>
+        <p class="agent-desc">Two-phase agent pair. BCAT-PLANNER analyzes Excel attachments and previews bulk JIRA ticket creation. BCAT-EXECUTOR creates and links all tickets once approved.</p>
+        <div class="agent-outputs">
+          <span class="agent-output-tag">Ticket Plan</span>
+          <span class="agent-output-tag">Bulk Creation</span>
+          <span class="agent-output-tag">Auto-linking</span>
+        </div>
+      </div>
+
+      <!-- VERITAS -->
+      <div class="agent-card agent-veritas reveal reveal-delay-7" style="grid-column: span 2;">
+        <div class="agent-glow"></div>
+        <div class="agent-card-top">
+          <div class="agent-number">AGENT-09 / VERITAS</div>
+        </div>
+        <div class="agent-codename">VERITAS</div>
+        <div class="agent-fullname">Verified Evidence-based Root-cause Investigation Truth &amp; Analysis System</div>
+        <div class="agent-rule"></div>
+        <p class="agent-desc">Generates comprehensive Root Cause Analysis reports for incidents. Collects evidence from SEN tickets and linked issues, explores relevant repositories, and produces detailed 6-section RCA reports with verified findings.</p>
+        <div class="agent-outputs">
+          <span class="agent-output-tag">Evidence Package</span>
+          <span class="agent-output-tag">Root Cause</span>
+          <span class="agent-output-tag">6-Section RCA</span>
+          <span class="agent-output-tag">Code Evidence</span>
+          <span class="agent-output-tag">Recommendations</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       AGENT DEEP DIVES
+  ══════════════════════════════════════════════════════ -->
+  <section class="deep-dives" id="sentry">
+    <style>
+      .deep-dives {
+        padding: 7rem 2.5rem;
+        background: var(--bg-raised);
+        border-top: 1px solid var(--rule);
+        border-bottom: 1px solid var(--rule);
+      }
+      .deep-dives-header {
+        max-width: 1200px;
+        margin: 0 auto 3rem;
+      }
+      .deep-dives-headline {
+        font-family: var(--font-display);
+        font-size: clamp(2.5rem, 4vw, 3.5rem);
+        font-weight: 700;
+        font-style: italic;
+        color: var(--text);
+        margin-bottom: 0.6rem;
+      }
+      .deep-dives-sub {
+        font-size: 1rem;
+        color: var(--text-muted);
+      }
+      .deep-dives-layout {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 0;
+        border: 1px solid var(--rule-bright);
+        background: var(--rule);
+      }
+      /* Tab sidebar */
+      .dd-tabs {
+        display: flex;
+        flex-direction: column;
+        background: var(--bg-card);
+        gap: 1px;
+      }
+      .dd-tab {
+        padding: 1.1rem 1.4rem;
+        cursor: pointer;
+        border: none;
+        background: var(--bg-card);
+        text-align: left;
+        transition: background 0.2s;
+        border-left: 3px solid transparent;
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+      }
+      .dd-tab:hover { background: var(--bg-card-hover); }
+      .dd-tab.active {
+        background: var(--bg-raised);
+        border-left-color: var(--gold);
+      }
+      .dd-tab-name {
+        font-family: var(--font-display);
+        font-size: 1rem;
+        font-weight: 700;
+        font-style: italic;
+        color: var(--text-muted);
+        transition: color 0.2s;
+      }
+      .dd-tab.active .dd-tab-name { color: var(--text); }
+      .dd-tab-num {
+        font-family: var(--font-mono);
+        font-size: 0.58rem;
+        color: var(--text-dim);
+        letter-spacing: 0.06em;
+      }
+      /* Agent color dots */
+      .dd-tab[data-agent="darci"]   .dd-tab-name { }
+      .dd-tab[data-agent="darci"].active .dd-tab-name   { color: #E86070; }
+      .dd-tab[data-agent="scribe"].active .dd-tab-name  { color: #5B9FE8; }
+      .dd-tab[data-agent="prism"].active .dd-tab-name   { color: #B07ED4; }
+      .dd-tab[data-agent="hermes"].active .dd-tab-name  { color: #D4922A; }
+      .dd-tab[data-agent="sentry"].active .dd-tab-name  { color: #4EBF70; }
+      .dd-tab[data-agent="beacon"].active .dd-tab-name  { color: #5BC8E8; }
+      .dd-tab[data-agent="bcat"].active .dd-tab-name    { color: #C8991E; }
+      .dd-tab[data-agent="veritas"].active .dd-tab-name { color: #A08060; }
+      /* Content pane */
+      .dd-panes {
+        background: var(--bg-card);
+      }
+      .dd-pane {
+        display: none;
+        padding: 2.5rem 3rem;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        align-items: start;
+      }
+      .dd-pane.active { display: grid; }
+      .dd-eyebrow {
+        font-family: var(--font-label);
+        font-size: 0.65rem;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .dd-eyebrow::before { content: ''; display: block; width: 14px; height: 1px; background: var(--gold); }
+      .dd-headline {
+        font-family: var(--font-display);
+        font-size: clamp(1.6rem, 2.5vw, 2.4rem);
+        font-weight: 700;
+        font-style: italic;
+        color: var(--text);
+        line-height: 1.15;
+        margin-bottom: 1rem;
+      }
+      .dd-body {
+        font-size: 0.95rem;
+        color: var(--text-warm);
+        line-height: 1.8;
+        margin-bottom: 1.2rem;
+      }
+      .dd-features { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.4rem; }
+      .dd-feature {
+        display: flex;
+        gap: 0.8rem;
+        font-size: 0.88rem;
+        color: var(--text-warm);
+        line-height: 1.6;
+      }
+      .dd-feature::before { content: '→'; color: var(--gold); flex-shrink: 0; font-family: var(--font-mono); }
+      .dd-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+      .dd-tag {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        color: var(--text-muted);
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--rule-bright);
+        padding: 0.2rem 0.6rem;
+      }
+      @media (max-width: 900px) {
+        .deep-dives-layout { grid-template-columns: 1fr; }
+        .dd-tabs { flex-direction: row; flex-wrap: wrap; overflow-x: auto; }
+        .dd-tab { border-left: none; border-bottom: 3px solid transparent; flex-direction: row; gap: 0.5rem; align-items: center; }
+        .dd-tab.active { border-bottom-color: var(--gold); }
+        .dd-pane { grid-template-columns: 1fr; }
+      }
+    </style>
+
+    <div class="deep-dives-header reveal">
+      <div class="section-eyebrow">Agent Deep Dives</div>
+      <h2 class="deep-dives-headline">Inside every agent.</h2>
+      <p class="deep-dives-sub">Select an agent to explore its capabilities, workflow, and sample output.</p>
+    </div>
+
+    <div class="deep-dives-layout reveal reveal-delay-1">
+      <!-- Tabs -->
+      <div class="dd-tabs">
+        <button class="dd-tab active" data-agent="darci">
+          <span class="dd-tab-num">01</span>
+          <span class="dd-tab-name">DARCI</span>
+        </button>
+        <button class="dd-tab" data-agent="scribe">
+          <span class="dd-tab-num">02</span>
+          <span class="dd-tab-name">SCRIBE</span>
+        </button>
+        <button class="dd-tab" data-agent="prism">
+          <span class="dd-tab-num">03</span>
+          <span class="dd-tab-name">PRISM</span>
+        </button>
+        <button class="dd-tab" data-agent="hermes">
+          <span class="dd-tab-num">04</span>
+          <span class="dd-tab-name">HERMES</span>
+        </button>
+        <button class="dd-tab" data-agent="sentry">
+          <span class="dd-tab-num">05</span>
+          <span class="dd-tab-name">SENTRY</span>
+        </button>
+        <button class="dd-tab" data-agent="beacon">
+          <span class="dd-tab-num">06</span>
+          <span class="dd-tab-name">BEACON</span>
+        </button>
+        <button class="dd-tab" data-agent="bcat">
+          <span class="dd-tab-num">07/08</span>
+          <span class="dd-tab-name">BCAT</span>
+        </button>
+        <button class="dd-tab" data-agent="veritas">
+          <span class="dd-tab-num">09</span>
+          <span class="dd-tab-name">VERITAS</span>
+        </button>
+      </div>
+
+      <!-- Panes -->
+      <div class="dd-panes">
+
+        <!-- DARCI -->
+        <div class="dd-pane active" id="pane-darci">
+          <div>
+            <div class="dd-eyebrow">Agent-01 · DARCI</div>
+            <h3 class="dd-headline">Hunts bugs<br>through history.</h3>
+            <p class="dd-body">DARCI traverses git blame, log, and diff to pinpoint the exact commit that introduced a defect — then proposes a surgical before/after fix with full justification.</p>
+            <div class="dd-features">
+              <div class="dd-feature">Traces execution paths through the codebase to isolate the defective code path</div>
+              <div class="dd-feature">Runs <code>git blame</code> and <code>git log</code> to find the introducing commit and author</div>
+              <div class="dd-feature">Compares master vs. customer branch to detect if the fix already exists</div>
+              <div class="dd-feature">Generates before/after code diffs with precise line-level change recommendations</div>
+              <div class="dd-feature">Assesses blast radius and identifies test cases needed</div>
+            </div>
+            <div class="dd-tags">
+              <span class="dd-tag">Introducing Commit</span>
+              <span class="dd-tag">Root Cause</span>
+              <span class="dd-tag">Code Diff</span>
+              <span class="dd-tag">Blast Radius</span>
+              <span class="dd-tag">Test Guidance</span>
+            </div>
+          </div>
+          <div class="sentry-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div></div>
+              <div class="terminal-title">DARCI · Root Cause · CPDEV-9201</div>
+              <div class="terminal-stamp">◆ COMPLETE</div>
+            </div>
+            <div class="terminal-body">
+              <div class="t-label">Investigation Summary</div>
+              <div class="terminal-check"><span class="terminal-check-name">Files Analyzed</span><span class="t-gold">14</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Commits Examined</span><span class="t-gold">38</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Defective Path Found</span><span class="t-pass">YES</span></div>
+              <div class="t-label">Root Cause</div>
+              <div style="color:var(--text-warm);font-size:0.7rem;line-height:1.6;margin-bottom:0.5rem;">
+                <span class="t-dim">file:</span> CaseServiceImpl.java:482<br>
+                <span class="t-dim">commit:</span> <span class="t-gold">a3f91c2</span> · 2024-11-14<br>
+                <span class="t-dim">author:</span> pallavi.tadulkar<br>
+                <span class="t-dim">msg:</span> <span class="t-warn">feat: add V5030 modifier logic</span>
+              </div>
+              <div class="t-label">Proposed Fix</div>
+              <div style="color:var(--text-warm);font-size:0.7rem;line-height:1.6;">
+                <span class="t-fail">- if (modifier == null) throw</span><br>
+                <span class="t-pass">+ if (modifier == null) return false;</span>
+              </div>
+              <div class="terminal-verdict">
+                <div class="verdict-decision" style="color:#E86070;">⚑ ROOT CAUSE IDENTIFIED</div>
+                <div class="verdict-risk">CONFIDENCE · <span class="t-pass">HIGH</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCRIBE -->
+        <div class="dd-pane" id="pane-scribe">
+          <div>
+            <div class="dd-eyebrow">Agent-02 · SCRIBE</div>
+            <h3 class="dd-headline">Turns code into<br>living documentation.</h3>
+            <p class="dd-body">SCRIBE traces any feature end-to-end — mapping execution flow, identifying components, and producing clear documentation that engineers can actually act on.</p>
+            <div class="dd-features">
+              <div class="dd-feature">Traces request-response flow from endpoint through service and data layers</div>
+              <div class="dd-feature">Maps component interactions and dependency chains across repositories</div>
+              <div class="dd-feature">Documents all API endpoints with parameter types and response shapes</div>
+              <div class="dd-feature">Identifies integration points with external systems and third-party APIs</div>
+              <div class="dd-feature">Produces structured markdown documentation ready to paste into Confluence</div>
+            </div>
+            <div class="dd-tags">
+              <span class="dd-tag">Overview</span>
+              <span class="dd-tag">Execution Flow</span>
+              <span class="dd-tag">Key Concepts</span>
+              <span class="dd-tag">API Endpoints</span>
+              <span class="dd-tag">Component Map</span>
+            </div>
+          </div>
+          <div class="sentry-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div></div>
+              <div class="terminal-title">SCRIBE · Documentation · CPDEV-8847</div>
+              <div class="terminal-stamp">◆ COMPLETE</div>
+            </div>
+            <div class="terminal-body">
+              <div class="t-label">Feature: Prior Authorization Submission</div>
+              <div class="terminal-check"><span class="terminal-check-name">Entry Point</span><span class="t-gold">POST /api/pa/submit</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Service Layer</span><span class="t-gold">PriorAuthService.java</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Components Mapped</span><span class="t-pass">9</span></div>
+              <div class="t-label">Execution Flow</div>
+              <div style="color:var(--text-warm);font-size:0.7rem;line-height:1.8;">
+                1. <span class="t-gold">PAController</span> <span class="t-dim">→</span> validates request<br>
+                2. <span class="t-gold">PriorAuthService</span> <span class="t-dim">→</span> eligibility check<br>
+                3. <span class="t-gold">ClinicalRulesEngine</span> <span class="t-dim">→</span> applies criteria<br>
+                4. <span class="t-gold">WorkflowRouter</span> <span class="t-dim">→</span> routes decision<br>
+                5. <span class="t-gold">NotificationService</span> <span class="t-dim">→</span> sends alerts
+              </div>
+              <div class="terminal-verdict">
+                <div class="verdict-decision" style="color:#5B9FE8;">✎ DOCUMENTATION READY</div>
+                <div class="verdict-risk">COVERAGE · <span class="t-pass">FULL</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PRISM -->
+        <div class="dd-pane" id="pane-prism">
+          <div>
+            <div class="dd-eyebrow">Agent-03 · PRISM</div>
+            <h3 class="dd-headline">Tickets become<br>implementation plans.</h3>
+            <p class="dd-body">PRISM reads a JIRA ticket and produces a precise, file-by-file implementation plan — with affected files identified, step-by-step guidance, testing strategy, and risk analysis.</p>
+            <div class="dd-features">
+              <div class="dd-feature">Parses requirements and acceptance criteria from ticket description</div>
+              <div class="dd-feature">Identifies all files requiring changes across the relevant repositories</div>
+              <div class="dd-feature">Generates before/after code snippets for every planned change</div>
+              <div class="dd-feature">Produces an ordered step-by-step implementation sequence</div>
+              <div class="dd-feature">Flags risks, dependencies, and estimated effort per change</div>
+            </div>
+            <div class="dd-tags">
+              <span class="dd-tag">Target Files</span>
+              <span class="dd-tag">Impl Steps</span>
+              <span class="dd-tag">Code Examples</span>
+              <span class="dd-tag">Risk Analysis</span>
+              <span class="dd-tag">Effort Estimate</span>
+            </div>
+          </div>
+          <div class="sentry-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div></div>
+              <div class="terminal-title">PRISM · Plan · CPDEV-10455</div>
+              <div class="terminal-stamp">◆ COMPLETE</div>
+            </div>
+            <div class="terminal-body">
+              <div class="t-label">Plan Summary</div>
+              <div class="terminal-check"><span class="terminal-check-name">Files to Modify</span><span class="t-gold">6</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Implementation Steps</span><span class="t-gold">8</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Estimated Effort</span><span class="t-gold">4h dev + 1h test</span></div>
+              <div class="t-label">Key Changes</div>
+              <div style="color:var(--text-warm);font-size:0.7rem;line-height:1.8;">
+                <span class="t-warn">MODIFY</span> <span class="t-gold">CaseController.java</span><br>
+                <span class="t-warn">MODIFY</span> <span class="t-gold">WorkflowService.java</span><br>
+                <span class="t-warn">MODIFY</span> <span class="t-gold">case_mapper.xml</span><br>
+                <span class="t-pass">CREATE</span> <span class="t-gold">CaseTransitionValidator.java</span>
+              </div>
+              <div class="terminal-verdict">
+                <div class="verdict-decision" style="color:#B07ED4;">◈ PLAN READY</div>
+                <div class="verdict-risk">RISK · <span class="t-warn">MEDIUM</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HERMES -->
+        <div class="dd-pane" id="pane-hermes">
+          <div>
+            <div class="dd-eyebrow">Agent-04 · HERMES</div>
+            <h3 class="dd-headline">Any config.<br>Any codebase.<br>Instantly.</h3>
+            <p class="dd-body">HERMES finds any configuration value with full context — its current value, where it lives, what depends on it, and what happens if you change it. HIPAA implications included.</p>
+            <div class="dd-features">
+              <div class="dd-feature">Searches .env files, Hibernate mappings, DB config tables, and property files</div>
+              <div class="dd-feature">Returns the current value, data type, and all known locations</div>
+              <div class="dd-feature">Maps every service and class that reads or writes the config</div>
+              <div class="dd-feature">Identifies downstream impact if the value is changed</div>
+              <div class="dd-feature">Flags PHI/PII exposure and HIPAA implications where relevant</div>
+            </div>
+            <div class="dd-tags">
+              <span class="dd-tag">Config Value</span>
+              <span class="dd-tag">Location</span>
+              <span class="dd-tag">Dependencies</span>
+              <span class="dd-tag">Impact Analysis</span>
+              <span class="dd-tag">HIPAA Flag</span>
+            </div>
+          </div>
+          <div class="sentry-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div></div>
+              <div class="terminal-title">HERMES · Config Lookup · CPDEV-7731</div>
+              <div class="terminal-stamp">◆ COMPLETE</div>
+            </div>
+            <div class="terminal-body">
+              <div class="t-label">Config: AUTO_APPROVE_PA_THRESHOLD</div>
+              <div class="terminal-check"><span class="terminal-check-name">Current Value</span><span class="t-gold">72 (hours)</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Type</span><span class="t-gold">INT · client-level</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Table</span><span class="t-gold">system_config</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">HIPAA Relevant</span><span class="t-warn">YES</span></div>
+              <div class="t-label">Dependencies (3 services)</div>
+              <div style="color:var(--text-warm);font-size:0.7rem;line-height:1.8;">
+                → <span class="t-gold">PriorAuthAutoApprovalJob</span><br>
+                → <span class="t-gold">PAWorkflowService.checkAutoApprove()</span><br>
+                → <span class="t-gold">ClinicalReviewScheduler</span>
+              </div>
+              <div class="terminal-verdict">
+                <div class="verdict-decision" style="color:#D4922A;">⚙ CONFIG LOCATED</div>
+                <div class="verdict-risk">PHI IMPACT · <span class="t-warn">REVIEW</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SENTRY -->
+        <div class="dd-pane" id="pane-sentry">
+          <div>
+            <div class="dd-eyebrow">Agent-05 · SENTRY</div>
+            <h3 class="dd-headline">Your database's<br>last line<br>of defense.</h3>
+            <p class="dd-body">SENTRY performs 7-stage autonomous validation of every MySQL execution ticket — correlating SQL against Hibernate models, verifying safety gates, and issuing legally defensible decisions with full audit trails.</p>
+            <div class="dd-features">
+              <div class="dd-feature">Parses SQL and correlates against HBM model files to verify semantic intent and table existence</div>
+              <div class="dd-feature">Validates WHERE clauses, predicate scoping, and tenant isolation boundaries</div>
+              <div class="dd-feature">Checks row impact alignment with expected count via preview query</div>
+              <div class="dd-feature">Verifies rollback plan targets identical rows with original value restoration</div>
+              <div class="dd-feature">Assesses indexed filters, transaction duration, and deadlock exposure</div>
+              <div class="dd-feature">Issues corrected SQL when FAIL items are detected in the ticket</div>
+            </div>
+            <div class="dd-tags">
+              <span class="dd-tag">Risk Level</span>
+              <span class="dd-tag">GO / NO-GO</span>
+              <span class="dd-tag">18-Point Checklist</span>
+              <span class="dd-tag">Corrected SQL</span>
+            </div>
+            <div class="sentry-decisions" style="margin-top:1rem;">
+              <div class="decision-pill safe">LOW · SAFE TO EXECUTE</div>
+              <div class="decision-pill caution">MED · EXECUTE WITH CONDITIONS</div>
+              <div class="decision-pill danger">HIGH · NOT SAFE</div>
+            </div>
+          </div>
+          <div class="sentry-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div></div>
+              <div class="terminal-title">SENTRY · Analysis Report · CPDEV-4821</div>
+              <div class="terminal-stamp">◆ COMPLETE</div>
+            </div>
+            <div class="terminal-body">
+              <div class="t-label">Inputs Present</div>
+              <div class="terminal-check"><span class="terminal-check-name">SQL Provided</span><span class="t-pass">PASS</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Rollback SQL</span><span class="t-pass">PASS</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Expected Row Count</span><span class="t-pass">PASS</span></div>
+              <div class="t-label">HBM Model Correlation</div>
+              <div class="terminal-check"><span class="terminal-check-name">Tables &amp; Columns Exist</span><span class="t-pass">PASS</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Intent Matches Model</span><span class="t-pass">PASS</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Scope Keys Verified</span><span class="t-pass">PASS</span></div>
+              <div class="t-label">Safety Gates</div>
+              <div class="terminal-check"><span class="terminal-check-name">WHERE Clause Present</span><span class="t-pass">PASS</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Predicate Scoped</span><span class="t-pass">PASS</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">No Dangerous DDL</span><span class="t-pass">PASS</span></div>
+              <div class="t-label">Row Impact · Rollback</div>
+              <div class="terminal-check"><span class="terminal-check-name">WHERE Aligns Expected</span><span class="t-pass">PASS</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Rollback Targets Same Rows</span><span class="t-pass">PASS</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Indexed Filters</span><span class="t-na">N/A</span></div>
+              <div class="terminal-verdict">
+                <div class="verdict-decision">✓ SAFE TO EXECUTE</div>
+                <div class="verdict-risk">RISK · <span class="t-pass">LOW</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BEACON -->
+        <div class="dd-pane" id="pane-beacon">
+          <div>
+            <div class="dd-eyebrow">Agent-06 · BEACON</div>
+            <h3 class="dd-headline">Excel to SQL,<br>validated and safe.</h3>
+            <p class="dd-body">BEACON takes an XLSX attachment from a JIRA ticket, sends it to MOANA for SQL generation, then validates the generated SQL against HBM models before it ever touches a database.</p>
+            <div class="dd-features">
+              <div class="dd-feature">Downloads XLSX attachment directly from the JIRA ticket</div>
+              <div class="dd-feature">Sends file to MOANA API for AI-powered SQL generation</div>
+              <div class="dd-feature">Validates generated SQL against Hibernate HBM models</div>
+              <div class="dd-feature">Verifies tenant scoping and client isolation boundaries</div>
+              <div class="dd-feature">Issues GO/CAUTION/REVIEW decision with full validation checklist</div>
+            </div>
+            <div class="dd-tags">
+              <span class="dd-tag">Schema Validation</span>
+              <span class="dd-tag">Tenant Scope</span>
+              <span class="dd-tag">Mapping Report</span>
+              <span class="dd-tag">MOANA Integration</span>
+              <span class="dd-tag">Checklist</span>
+            </div>
+          </div>
+          <div class="sentry-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div></div>
+              <div class="terminal-title">BEACON · SQL Validation · CPSUP-38200</div>
+              <div class="terminal-stamp">◆ COMPLETE</div>
+            </div>
+            <div class="terminal-body">
+              <div class="t-label">File Info</div>
+              <div class="terminal-check"><span class="terminal-check-name">Source File</span><span class="t-gold">update_cases.xlsx</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Row Count</span><span class="t-gold">142 rows</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">MOANA Query ID</span><span class="t-gold">q_8f3a21</span></div>
+              <div class="t-label">HBM Validation</div>
+              <div class="terminal-check"><span class="terminal-check-name">Table Exists</span><span class="t-pass">PASS · case_management</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Columns Valid</span><span class="t-pass">PASS · 4/4 verified</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Tenant Scoped</span><span class="t-pass">PASS · client_id present</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Transaction Wrapped</span><span class="t-pass">PASS</span></div>
+              <div class="terminal-verdict">
+                <div class="verdict-decision" style="color:#5BC8E8;">✓ SAFE TO EXECUTE</div>
+                <div class="verdict-risk">RISK · <span class="t-pass">LOW</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BCAT -->
+        <div class="dd-pane" id="pane-bcat">
+          <div>
+            <div class="dd-eyebrow">Agent-07/08 · BCAT</div>
+            <h3 class="dd-headline">One Excel.<br>Hundreds of tickets.<br>Zero manual effort.</h3>
+            <p class="dd-body">BCAT is a two-phase agent pair. BCAT-PLANNER previews the ticket creation plan for human approval. BCAT-EXECUTOR then creates, links, and labels all tickets in bulk.</p>
+            <div class="dd-features">
+              <div class="dd-feature">PLANNER downloads Excel from JIRA, detects scenario type (Letters, Workbooks, Upgrades, Assessments, Tasking)</div>
+              <div class="dd-feature">Generates a preview of all tickets to be created with summaries and types</div>
+              <div class="dd-feature">Posts plan as a JIRA comment and labels the ticket <code>bcat-planned</code></div>
+              <div class="dd-feature">EXECUTOR triggers once an Approver is set on the ticket</div>
+              <div class="dd-feature">Creates all child tickets, attaches per-ticket Excel slices, and links them to the parent</div>
+            </div>
+            <div class="dd-tags">
+              <span class="dd-tag">Scenario Detection</span>
+              <span class="dd-tag">Ticket Plan Preview</span>
+              <span class="dd-tag">Bulk Creation</span>
+              <span class="dd-tag">Auto-linking</span>
+              <span class="dd-tag">Excel Slicing</span>
+            </div>
+          </div>
+          <div class="sentry-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div></div>
+              <div class="terminal-title">BCAT · Plan · CPSUP-38719</div>
+              <div class="terminal-stamp">◆ PLANNED</div>
+            </div>
+            <div class="terminal-body">
+              <div class="t-label">BCAT-PLANNER Phase</div>
+              <div class="terminal-check"><span class="terminal-check-name">Source File</span><span class="t-gold">MOE.xlsx</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Scenario Detected</span><span class="t-gold">WORKBOOKS</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Tickets to Create</span><span class="t-gold">3</span></div>
+              <div class="t-label">Ticket Preview</div>
+              <div style="color:var(--text-warm);font-size:0.7rem;line-height:1.8;">
+                <span class="t-gold">01</span> Workbook Index config<br>
+                <span class="t-gold">02</span> ExRM Configuration setup<br>
+                <span class="t-gold">03</span> Intake workflow update
+              </div>
+              <div class="t-label">BCAT-EXECUTOR Phase</div>
+              <div class="terminal-check"><span class="terminal-check-name">Approver Set</span><span class="t-pass">YES → Execute</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Tickets Created</span><span class="t-pass">3 / 3</span></div>
+              <div class="terminal-verdict">
+                <div class="verdict-decision" style="color:#C8991E;">✓ BULK COMPLETE</div>
+                <div class="verdict-risk">LINKED · <span class="t-pass">3 TICKETS</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VERITAS -->
+        <div class="dd-pane" id="pane-veritas">
+          <div>
+            <div class="dd-eyebrow">Agent-09 · VERITAS</div>
+            <h3 class="dd-headline">Evidence-driven<br>root cause analysis.</h3>
+            <p class="dd-body">VERITAS collects evidence from SEN tickets and all linked issues, explores the relevant codebase, and generates a comprehensive 6-section RCA report with verified findings and recommendations.</p>
+            <div class="dd-features">
+              <div class="dd-feature">Phase 1: Fetches SEN ticket, all linked JIRA tickets, and every comment</div>
+              <div class="dd-feature">Writes evidence to structured markdown files for Claude to read during analysis</div>
+              <div class="dd-feature">Phase 2: Claude SDK explores relevant repositories using the evidence as a guide</div>
+              <div class="dd-feature">Generates a 6-section RCA: Executive Summary, Timeline, Root Cause, Impact, Resolution, Prevention</div>
+              <div class="dd-feature">Posts full report back to the originating SEN ticket as a JIRA comment</div>
+            </div>
+            <div class="dd-tags">
+              <span class="dd-tag">Evidence Package</span>
+              <span class="dd-tag">Root Cause</span>
+              <span class="dd-tag">Timeline</span>
+              <span class="dd-tag">Impact Analysis</span>
+              <span class="dd-tag">6-Section RCA</span>
+              <span class="dd-tag">Prevention Plan</span>
+            </div>
+          </div>
+          <div class="sentry-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div></div>
+              <div class="terminal-title">VERITAS · RCA · SEN-398</div>
+              <div class="terminal-stamp">◆ COMPLETE</div>
+            </div>
+            <div class="terminal-body">
+              <div class="t-label">Evidence Collection</div>
+              <div class="terminal-check"><span class="terminal-check-name">SEN Ticket</span><span class="t-pass">FETCHED</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Linked Tickets</span><span class="t-gold">2 (CPSUP-35762, CPSUP-35760)</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Total Comments</span><span class="t-gold">7</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Evidence Files Written</span><span class="t-gold">4</span></div>
+              <div class="t-label">RCA Generation</div>
+              <div class="terminal-check"><span class="terminal-check-name">Tool Calls</span><span class="t-gold">26</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Repos Explored</span><span class="t-gold">3</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Report Length</span><span class="t-gold">16,293 chars</span></div>
+              <div class="terminal-check"><span class="terminal-check-name">Cost</span><span class="t-gold">$0.31</span></div>
+              <div class="terminal-verdict">
+                <div class="verdict-decision" style="color:#A08060;">✓ RCA DELIVERED</div>
+                <div class="verdict-risk">DURATION · <span class="t-pass">1m 51s</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /dd-panes -->
+    </div><!-- /deep-dives-layout -->
+  </section>
+
+  <div class="rule-h"></div>
+
+  <!-- ══════════════════════════════════════════════════════
+       ARCHITECTURE
+  ══════════════════════════════════════════════════════ -->
+  <section class="architecture" id="architecture">
+    <div class="architecture-inner">
+      <div class="arch-header">
+        <div>
+          <div class="section-eyebrow reveal">Under the Hood</div>
+          <h2 class="arch-headline reveal reveal-delay-1">Built for production.<br>Designed for scale.</h2>
+        </div>
+        <div>
+          <p class="arch-body reveal reveal-delay-2">Fully orchestrated on AWS ECS with each agent running as an independent containerized service, backed by Claude on Bedrock and a real-time status layer. Every component is isolated, monitored, and horizontally scalable.</p>
+        </div>
+      </div>
+
+      <div class="arch-diagram reveal reveal-delay-2">
+        <div class="arch-row">
+          <div class="arch-node">
+            <div class="arch-node-box">JIRA</div>
+            <div class="arch-node-sub">Ticket Source</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-node">
+            <div class="arch-node-box gold">Orchestrator</div>
+            <div class="arch-node-sub">AWS ECS · Polling + Routing</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-node">
+            <div class="arch-node-box">MySQL Queue</div>
+            <div class="arch-node-sub">Task Management</div>
+          </div>
+        </div>
+
+        <div class="arch-cluster">
+          <div class="arch-cluster-label">Agent Cluster · AWS ECS · Claude Sonnet 4.6 on Bedrock</div>
+          <div class="arch-agents-row">
+            <div class="arch-agent-chip d">DARCI</div>
+            <div class="arch-agent-chip s">SCRIBE</div>
+            <div class="arch-agent-chip p">PRISM</div>
+            <div class="arch-agent-chip h">HERMES</div>
+            <div class="arch-agent-chip se">SENTRY</div>
+            <div class="arch-agent-chip b">BEACON</div>
+            <div class="arch-agent-chip bc">BCAT</div>
+            <div class="arch-agent-chip v">VERITAS</div>
+          </div>
+        </div>
+
+        <div class="arch-row" style="margin-top: 1rem;">
+          <div class="arch-node">
+            <div class="arch-node-box gold">Claude SDK</div>
+            <div class="arch-node-sub">AWS Bedrock · Inference</div>
+          </div>
+          <div class="arch-arrow">+</div>
+          <div class="arch-node">
+            <div class="arch-node-box">S3</div>
+            <div class="arch-node-sub">Results Store</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-node">
+            <div class="arch-node-box">JIRA</div>
+            <div class="arch-node-sub">Results Posted</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       WORKFLOW
+  ══════════════════════════════════════════════════════ -->
+  <section class="workflow" id="workflow">
+    <div class="workflow-inner">
+      <div class="workflow-header">
+        <div>
+          <div class="section-eyebrow reveal">The Workflow</div>
+          <h2 class="workflow-headline reveal reveal-delay-1">From ticket to result.<br>Fully autonomous.</h2>
+        </div>
+        <div>
+          <p class="workflow-body reveal reveal-delay-2">A single labeled JIRA ticket triggers the full pipeline — from routing and workspace setup, through live analysis, to a structured result posted back to the ticket. No human intervention required at any step.</p>
+        </div>
+      </div>
+
+      <div class="workflow-steps">
+        <div class="workflow-step reveal">
+          <div class="step-num">01</div>
+          <div class="step-title">Ticket Arrives</div>
+          <p class="step-body">JIRA ticket is labeled. Orchestrator polls, extracts context, determines the target agent and relevant repository workspace.</p>
+          <div class="step-connector">→</div>
+        </div>
+        <div class="workflow-step reveal reveal-delay-2">
+          <div class="step-num">02</div>
+          <div class="step-title">Agent Dispatched</div>
+          <p class="step-body">Task enters MySQL queue. Specialized worker picks it up, initializes the agent with repo context and the appropriate permission scope.</p>
+          <div class="step-connector">→</div>
+        </div>
+        <div class="workflow-step reveal reveal-delay-4">
+          <div class="step-num">03</div>
+          <div class="step-title">Autonomous Analysis</div>
+          <p class="step-body">Agent runs via Claude SDK on Bedrock, traversing the codebase with Read / Glob / Grep. Real-time status streams via WebSocket.</p>
+          <div class="step-connector">→</div>
+        </div>
+        <div class="workflow-step reveal reveal-delay-6">
+          <div class="step-num">04</div>
+          <div class="step-title">Result Posted</div>
+          <p class="step-body">Structured output uploaded to S3. Orchestrator formats and posts the analysis directly back to the originating JIRA ticket.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       PERMISSIONS
+  ══════════════════════════════════════════════════════ -->
+  <section class="permissions">
+    <div class="permissions-inner">
+      <div class="permissions-left">
+        <div class="section-eyebrow reveal">Access Control</div>
+        <h2 class="permissions-headline reveal reveal-delay-1">Five levels.<br>Zero overreach.</h2>
+        <p class="permissions-body reveal reveal-delay-2">Every agent operates within a strict permission boundary. Capabilities are granted by role, not default — ensuring controlled, auditable, and reversible execution at every level.</p>
+      </div>
+      <div class="permissions-ladder reveal reveal-delay-2">
+        <div class="perm-level">
+          <div class="perm-number">L1</div>
+          <div class="perm-name">code_exploration</div>
+          <div class="perm-tools">Read · Glob · Grep</div>
+        </div>
+        <div class="perm-level">
+          <div class="perm-number">L2</div>
+          <div class="perm-name">read_only</div>
+          <div class="perm-tools">+ Bash (git queries)</div>
+        </div>
+        <div class="perm-level">
+          <div class="perm-number">L3</div>
+          <div class="perm-name">analysis</div>
+          <div class="perm-tools">+ Task delegation · TodoWrite</div>
+        </div>
+        <div class="perm-level">
+          <div class="perm-number">L4</div>
+          <div class="perm-name">patch_proposal</div>
+          <div class="perm-tools">+ Write · Edit operations</div>
+        </div>
+        <div class="perm-level top">
+          <div class="perm-number">L5</div>
+          <div class="perm-name">full_autonomy</div>
+          <div class="perm-tools">Full access · KillBash · WebFetch · WebSearch</div>
+          <div class="perm-badge">Restricted</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       CTA
+  ══════════════════════════════════════════════════════ -->
+  <section class="cta-section" id="cta">
+    <div class="cta-inner">
+      <div class="cta-eyebrow reveal">Ready to deploy</div>
+      <h2 class="cta-headline reveal reveal-delay-1">Let the<br>cluster<br>run.</h2>
+      <p class="cta-sub reveal reveal-delay-2">Nine agents. Zero bottlenecks.<br>Your engineering velocity — redefined.</p>
+      <div class="cta-buttons reveal reveal-delay-3">
+        <a href="https://github.com/mhk-repos/cp-autonomous-ai-agents-platform" class="btn btn-primary" target="_blank">View on GitHub →</a>
+        <a href="#agents" class="btn btn-secondary">Explore Agents</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════════════════════ -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">Product <span>Factory</span></div>
+      <div class="footer-copy">Powered by Claude + AWS Bedrock · Autonomous by Design</div>
+      <div class="footer-version">v2.0.0 · &copy; 2026 MHK</div>
+    </div>
+  </footer>
+
+  <!-- ══════════════════════════════════════════════════════
+       SCRIPTS
+  ══════════════════════════════════════════════════════ -->
+  <script>
+    /* ── Typewriter ─────────────────────────────────── */
+    const lines = [
+      'Autonomous root cause analysis — no human required.',
+      'SQL safety validation in under 90 seconds.',
+      'Nine agents. One JIRA label. Zero bottlenecks.',
+      'Healthcare engineering, running on autopilot.',
+      'Powered by Claude Sonnet 4.6 + AWS Bedrock.',
+    ];
+    let li = 0, ci = 0, deleting = false;
+    const el = document.getElementById('typed-text');
+
+    function type() {
+      const current = lines[li];
+      if (!deleting) {
+        el.textContent = current.slice(0, ++ci);
+        if (ci === current.length) {
+          deleting = true;
+          setTimeout(type, 2400);
+          return;
+        }
+        setTimeout(type, 38);
+      } else {
+        el.textContent = current.slice(0, --ci);
+        if (ci === 0) {
+          deleting = false;
+          li = (li + 1) % lines.length;
+          setTimeout(type, 400);
+          return;
+        }
+        setTimeout(type, 18);
+      }
+    }
+    setTimeout(type, 1400);
+
+    /* ── Scroll reveal ──────────────────────────────── */
+    const revealEls = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    revealEls.forEach(el => observer.observe(el));
+
+    /* ── Counter animation ──────────────────────────── */
+    function animateCount(el, target, duration = 1200) {
+      const start = performance.now();
+      function step(now) {
+        const p = Math.min((now - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(ease * target);
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    const countObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const target = parseInt(e.target.dataset.count);
+          if (!isNaN(target)) animateCount(e.target, target);
+          countObs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.5 });
+
+    document.querySelectorAll('[data-count]').forEach(el => countObs.observe(el));
+
+    /* ── Agent deep-dive tabs ──────────────────────── */
+    document.querySelectorAll('.dd-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const agent = tab.dataset.agent;
+        document.querySelectorAll('.dd-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.dd-pane').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('pane-' + agent)?.classList.add('active');
+      });
+    });
+
+    /* ── Smooth nav hide/show ───────────────────────── */
+    let lastY = 0;
+    const nav = document.querySelector('nav');
+    window.addEventListener('scroll', () => {
+      const y = window.scrollY;
+      if (y > 80) {
+        nav.style.transform = y > lastY ? 'translateY(-100%)' : 'translateY(0)';
+        nav.style.transition = 'transform 0.3s cubic-bezier(0.22,1,0.36,1)';
+      } else {
+        nav.style.transform = 'translateY(0)';
+      }
+      lastY = y;
+    }, { passive: true });
+  </script>
+</body>
+</html>
